@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Eliminação de Gauss</title>
+  <style>
+    table {
+      border-collapse: collapse;
+    }
+    table td {
+      border: 1px solid black;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Eliminação de Gauss</h1>
+
+  <label for="matrixSize">Tamanho da matriz:</label>
+  <input type="number" id="matrixSize">
+
+  <button onclick="createMatrix()">Criar Matriz</button>
+
+  <h2>Matriz</h2>
+  <table id="matrix"></table>
+
+  <button onclick="performGaussianElimination()">Calcular Eliminação de Gauss</button>
+  <button onclick="performGaussSeidel()">Calcular Gauss-Seidel</button>
+
+  <h2>Resultado</h2>
+  <p id="result"></p>
+
+  <script>
+    function createMatrix() {
+      var matrixSize = parseInt(document.getElementById("matrixSize").value);
+
+      var matrixTable = document.getElementById("matrix");
+      matrixTable.innerHTML = "";
+
+      for (var i = 0; i < matrixSize; i++) {
+        var row = document.createElement("tr");
+
+        for (var j = 0; j < matrixSize + 1; j++) {
+          var cell = document.createElement("td");
+          var input = document.createElement("input");
+          input.type = "number";
+          cell.appendChild(input);
+          row.appendChild(cell);
+        }
+
+        matrixTable.appendChild(row);
+      }
+    }
+
+    function performGaussianElimination() {
+      var matrixTable = document.getElementById("matrix");
+      var matrix = [];
+
+      // Coletando os valores da matriz da tabela
+      for (var i = 0; i < matrixTable.rows.length; i++) {
+        var row = matrixTable.rows[i];
+        var rowData = [];
+
+        for (var j = 0; j < row.cells.length; j++) {
+          var cell = row.cells[j];
+          var inputValue = parseFloat(cell.firstChild.value);
+          rowData.push(inputValue);
+        }
+
+        matrix.push(rowData);
+      }
+
+      var result = gaussianElimination(matrix);
+
+      // Exibindo o resultado na tela
+      var resultElement = document.getElementById("result");
+      resultElement.innerHTML = "Resultado: <br>" + result;
+    }
+
+    function performGaussSeidel() {
+      var matrixTable = document.getElementById("matrix");
+      var matrix = [];
+
+      // Coletando os valores da matriz da tabela
+      for (var i = 0; i < matrixTable.rows.length; i++) {
+        var row = matrixTable.rows[i];
+        var rowData = [];
+
+        for (var j = 0; j < row.cells.length; j++) {
+          var cell = row.cells[j];
+          var inputValue = parseFloat(cell.firstChild.value);
+          rowData.push(inputValue);
+        }
+
+        matrix.push(rowData);
+      }
+
+      var result = gaussSeidel(matrix);
+
+      // Exibindo o resultado na tela
+      var resultElement = document.getElementById("result");
+      resultElement.innerHTML = "Resultado: <br>" + result;
+    }
+
+    function gaussianElimination(matrix) {
+      var rows = matrix.length;
+      var cols = matrix[0].length;
+
+      for (var i = 0; i < rows; i++) {
+        // Encontrar a linha com o maior elemento na coluna atual
+        var maxRowIndex = i;
+        var maxValue = Math.abs(matrix[i][i]);
+
+        for (var k = i + 1; k < rows; k++) {
+          var value = Math.abs(matrix[k][i]);
+
+          if (value > maxValue) {
+            maxRowIndex = k;
+            maxValue = value;
+          }
+        }
+
+        // Trocar linhas, se necessário
+        if (maxRowIndex !== i) {
+          var tempRow = matrix[i];
+          matrix[i] = matrix[maxRowIndex];
+          matrix[maxRowIndex] = tempRow;
+        }
+
+        // Eliminação
+        for (var j = i + 1; j < rows; j++) {
+          var factor = matrix[j][i] / matrix[i][i];
+
+          for (var k = i; k < cols; k++) {
+            matrix[j][k] -= factor * matrix[i][k];
+          }
+        }
+      }
+
+      // Resolver o sistema triangular superior
+      var solution = [];
+
+      for (var i = rows - 1; i >= 0; i--) {
+        var sum = 0;
+
+        for (var j = i + 1; j < cols - 1; j++) {
+          sum += matrix[i][j] * solution[j];
+        }
+
+        solution[i] = (matrix[i][cols - 1] - sum) / matrix[i][i];
+      }
+
+      return solution;
+    }
+
+    function gaussSeidel(matrix) {
+      var rows = matrix.length;
+      var cols = matrix[0].length - 1;
+      var maxIterations = 100;
+      var epsilon = 0.0001;
+
+      var solution = new Array(rows).fill(0);
+
+      for (var iter = 0; iter < maxIterations; iter++) {
+        var maxDiff = 0;
+
+        for (var i = 0; i < rows; i++) {
+          var prevSolution = solution[i];
+          var sum = matrix[i][cols];
+
+          for (var j = 0; j < cols; j++) {
+            if (j !== i) {
+              sum -= matrix[i][j] * solution[j];
+            }
+          }
+
+          solution[i] = sum / matrix[i][i];
+
+          var diff = Math.abs(solution[i] - prevSolution);
+
+          if (diff > maxDiff) {
+            maxDiff = diff;
+          }
+        }
+
+        if (maxDiff < epsilon) {
+          break;
+        }
+      }
+
+      return solution;
+    }
+  </script>
+</body>
+</html>
